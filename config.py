@@ -55,11 +55,11 @@ with exemplo:
     with col1:
         cor_cabecalho = st.color_picker("Cor Cabeçalho", config_atual.get("cor_cabecalho", "#FFDD57"))
     with col2:
-        cor_fonte_cabecalho = st.color_picker("Cor Fonte Cabeçalho", config_atual.get("cor_fonte_cabecalho", "#FFFFFF"))
+        cor_fonte_cabecalho = st.color_picker("Cor Fonte Cabeçalho", config_atual.get("cor_fonte_cabecalho", "#000000"))
 
     col3, col4 = st.columns(2)
     with col3:
-        cor_base_tabela = st.color_picker("Cor Base Tabela", config_atual.get("cor_fundo_tabela", "#000000"))
+        cor_base_tabela = st.color_picker("Cor Base Tabela", config_atual.get("cor_fundo_tabela", "#FFFFFF"))
     with col4:
         cor_texto_tabela = st.color_picker("Cor do Texto Tabela", config_atual.get("cor_texto_tabela", "#000000"))
 

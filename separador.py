@@ -23,7 +23,7 @@ def carregar_config():
         "altura_linhas_cabecalho": 30,
         "alinhamento_vertical_cabecalho": "center",
         "alinhamento_horizontal_cabecalho": "center",
-        "cor_fundo_tabela": "f9f0f0",
+        "cor_fundo_tabela": "FFFFFF",
         "cor_texto_tabela": "000000",
         "tamanho_fonte_tabela": 20,
         "altura_linhas_tabela": 16,
@@ -200,7 +200,7 @@ if uploaded_file:
     # Criar DataFrame estilizado
     df_config = pd.DataFrame(styled_data, columns=["Propriedade", "Valor"])
 
-    st.write(df_config.to_html(escape=False), unsafe_allow_html=True)
+    st.write(f"""<style>th{{ text-align: left !important; }}</style>{df_config.to_html(index=False, escape=False)}""", unsafe_allow_html=True)
 
     if st.button('Ir para configuração de estilo'):
         st.switch_page('config.py')
@@ -213,9 +213,10 @@ if uploaded_file:
         st.session_state.selecionados = list(arquivos.keys())  # Define padrão com todos os arquivos selecionados
 
 # Exibe a seleção de fornecedores apenas se houver arquivos processados
-st.subheader('Download em Massa')
 if "arquivos_processados" in st.session_state and st.session_state.arquivos_processados and uploaded_file:
-    nova_selecao = st.multiselect("Selecione os arquivos para download em massa",
+    st.divider()
+    st.subheader('Download em Massa')
+    nova_selecao = st.multiselect("Selecione os arquivos para download em massa (Padrão: todos estão selecionados automaticamente)",
                                   list(st.session_state.arquivos_processados.keys()),
                                   default=st.session_state.selecionados)
 
