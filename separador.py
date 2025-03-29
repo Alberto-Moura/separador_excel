@@ -213,6 +213,7 @@ if uploaded_file:
         st.session_state.selecionados = list(arquivos.keys())  # Define padrão com todos os arquivos selecionados
 
 # Exibe a seleção de fornecedores apenas se houver arquivos processados
+st.subheader('Download em Massa')
 if "arquivos_processados" in st.session_state and st.session_state.arquivos_processados and uploaded_file:
     nova_selecao = st.multiselect("Selecione os arquivos para download em massa",
                                   list(st.session_state.arquivos_processados.keys()),
@@ -224,7 +225,6 @@ if "arquivos_processados" in st.session_state and st.session_state.arquivos_proc
 
     # Criar e oferecer o download do ZIP apenas se houver arquivos selecionados
     if st.session_state.selecionados:
-        st.subheader('Download em Massa')
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
             for nome in st.session_state.selecionados:
