@@ -13,25 +13,25 @@ CONFIG_PATH = 'config_excel.json'
 def carregar_config():
     if os.path.exists(CONFIG_PATH):
         with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            return True, json.load(f)
     
      # Definição de valores padrão caso não haja JSON
     config_padrao = {
-        "cor_cabecalho": "0b480b",
-        "cor_fonte_cabecalho": "FFFFFF",
-        "tamanho_fonte_cabecalho": 23,
-        "altura_linhas_cabecalho": 30,
+        "cor_cabecalho": "#FFDD57",
+        "cor_fonte_cabecalho": "#000000",
+        "tamanho_fonte_cabecalho": 14,
+        "altura_linhas_cabecalho": 26,
         "alinhamento_vertical_cabecalho": "center",
         "alinhamento_horizontal_cabecalho": "center",
-        "cor_fundo_tabela": "FFFFFF",
-        "cor_texto_tabela": "000000",
-        "tamanho_fonte_tabela": 20,
+        "cor_fundo_tabela": "#FFFFFF",
+        "cor_texto_tabela": "#000000",
+        "tamanho_fonte_tabela": 12,
         "altura_linhas_tabela": 16,
         "alinhamento_vertical_texto": "center",
         "alinhamento_horizontal_texto": "center"
     }
 
-    return config_padrao
+    return False, config_padrao
 
 def processar_planilha(uploaded_file, colunas_removidas, renomear_colunas, configuracao_excel,separador):
     df = pd.read_excel(uploaded_file)
@@ -174,13 +174,13 @@ if uploaded_file:
 
     st.divider()
     st.subheader('Estilização da Planilha')
-    configuracao_excel = carregar_config()
+    status, configuracao_excel = carregar_config()
 
-    if configuracao_excel:
+    if status:
         st.success('Configuração localizada com sucesso!')
     else:
         st.warning('Nenhuma pré-configuração localizada. Faça o upload abaixo ou crie sua própria neste [link](conifg.py).')
-        estilo = st.file_uploader('Caso tenha uma configuração pronta, Faça o upload do arquivo de configuração', type=['json'])
+        estilo = st.file_uploader('Upload do arquivo de configuração', type=['json'])
 
         if estilo is not None:
             configuracao_excel = json.load(estilo)
