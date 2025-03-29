@@ -33,7 +33,7 @@ def carregar_config():
 
     return config_padrao
 
-def processar_planilha(uploaded_file, colunas_removidas, renomear_colunas, configuracao_excel):
+def processar_planilha(uploaded_file, colunas_removidas, renomear_colunas, configuracao_excel,separador):
     df = pd.read_excel(uploaded_file)
     df['Status'] = ''
     df['Nova Data'] = ''
@@ -61,25 +61,22 @@ def processar_planilha(uploaded_file, colunas_removidas, renomear_colunas, confi
     if colunas_removidas:
         df = df.drop(columns=colunas_removidas, errors='ignore')
 
-    fornecedores_col = colunas_norm.get('Fornecedor/centro fornecedor', 'Fornecedor/centro fornecedor')
-    if fornecedores_col not in df.columns:
-        st.error("A coluna de fornecedores não foi encontrada na planilha!")
+    if separador not in df.columns:
+        st.error(f"A coluna de {separador} não foi encontrada na planilha!")
         return {}, 0, 0, 0
 
-    fornecedores = df[fornecedores_col].dropna().unique()
+    separadores = df[separador].dropna().unique()
     arquivos = {}
 
-    for fornecedor in fornecedores:
-        df_forn = df[df[fornecedores_col] == fornecedor]
+    for parametro_separacao in separadores:
+        df_forn = df[df[separador] == parametro_separacao]
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df_forn.to_excel(writer, index=False, sheet_name='Planilha')
-            #workbook = writer.book
             worksheet = writer.sheets['Planilha']
-            
             worksheet.insert_rows(1)
             worksheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(df_forn.columns))
-            worksheet.cell(1, 1).value = f"Pedidos Pendentes - Fornecedor: {fornecedor}"
+            worksheet.cell(1, 1).value = f"Pedidos Pendentes - {parametro_separacao}"
             worksheet.cell(1, 1).alignment = Alignment(horizontal='center', vertical='center')
             worksheet.cell(1, 1).font = Font(bold=True, size=16)
             worksheet.row_dimensions[1].height = 30
@@ -113,12 +110,12 @@ def processar_planilha(uploaded_file, colunas_removidas, renomear_colunas, confi
                 worksheet.column_dimensions[get_column_letter(col_num)].width = max_length + 10
 
         output.seek(0)
-        arquivos[f"{fornecedor}.xlsx"] = output
+        arquivos[f"{parametro_separacao}.xlsx"] = output
 
     pedidos_col = colunas_norm.get('Documento de compras', 'Documento de compras')
     pendente_col = colunas_norm.get('Qtd.pendente', 'Qtd.pendente')
 
-    return arquivos, len(fornecedores), df[pedidos_col].nunique() if pedidos_col in df.columns else 0, df[pendente_col].sum() if pendente_col in df.columns else 0
+    return arquivos, len(separadores), df[pedidos_col].nunique() if pedidos_col in df.columns else 0, df[pendente_col].sum() if pendente_col in df.columns else 0
 
 st.title('Processamento de Pedidos')
 
@@ -144,6 +141,7 @@ if uploaded_file:
     colunas_disponiveis = df.columns
 
     if escolha_padrao == 'Manter colunas padrão':
+        st.info(f'As colunas padrão são: \n\n {colunas_padrao}', icon="ℹ️")
         colunas_removidas = st.multiselect('Selecione as colunas que deseja remover', colunas_disponiveis, 
                                        default=[col for col in colunas_disponiveis if col not in colunas_padrao])
     else:
@@ -168,6 +166,11 @@ if uploaded_file:
                 renomear_colunas[coluna] = novo_nome
         coluna_meio.markdown(f'<div style="border-left: 1px solid grey; height: {len(colunas_disponiveis)/2*2,5294}px;"></div>', unsafe_allow_html=True)
         dividir_coluna += 1
+
+    st.divider()
+    st.subheader('Coluna de Separação')
+    colunas_selecionadas = list(renomear_colunas.values())
+    separador = st.selectbox('Escolha qual será a coluna base para separação do arquivo', colunas_selecionadas)
 
     st.divider()
     st.subheader('Estilização da Planilha')
@@ -199,12 +202,13 @@ if uploaded_file:
 
     st.write(df_config.to_html(escape=False), unsafe_allow_html=True)
 
-    st.link_button('Ir para configuração de estilo', 'config.py',)
+    if st.button('Ir para configuração de estilo'):
+        st.switch_page('config.py')
 
     st.divider()
 
     if st.button('Processar Arquivo', type='primary', key='processar_arquivos'):
-        arquivos, qtd_fornecedores, qtd_pedidos, qtd_pecas = processar_planilha(uploaded_file, colunas_removidas, renomear_colunas, configuracao_excel)
+        arquivos, qtd_fornecedores, qtd_pedidos, qtd_pecas = processar_planilha(uploaded_file, colunas_removidas, renomear_colunas, configuracao_excel, separador)
         st.session_state.arquivos_processados = arquivos  # Armazena no session_state
         st.session_state.selecionados = list(arquivos.keys())  # Define padrão com todos os arquivos selecionados
 
